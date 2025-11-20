@@ -1,10 +1,11 @@
-import { memo, useMemo, ReactElement } from 'react';
+import { ReactElement } from 'react';
 import { useRecoilValue } from 'recoil';
-import MarkdownLite from '~/components/Chat/Messages/Content/MarkdownLite';
 import Markdown from '~/components/Chat/Messages/Content/Markdown';
+import MarkdownLite from '~/components/Chat/Messages/Content/MarkdownLite';
 import { useMessageContext } from '~/Providers';
-import { cn } from '~/utils';
 import store from '~/store';
+import { cn } from '~/utils';
+import AIResponse from '../AIResponse';
 
 type TextPartProps = {
   text: string;
@@ -17,22 +18,21 @@ type ContentType =
   | ReactElement<React.ComponentProps<typeof MarkdownLite>>
   | ReactElement;
 
-const TextPart = memo(({ text, isCreatedByUser, showCursor }: TextPartProps) => {
+function TextPart({ text, isCreatedByUser, showCursor }: TextPartProps) {
   const { isSubmitting = false, isLatestMessage = false } = useMessageContext();
   const enableUserMsgMarkdown = useRecoilValue(store.enableUserMsgMarkdown);
-  const showCursorState = useMemo(() => showCursor && isSubmitting, [showCursor, isSubmitting]);
+  const showCursorState = showCursor && isSubmitting;
 
-  const content: ContentType = useMemo(() => {
-    if (!isCreatedByUser) {
-      return <Markdown content={text} isLatestMessage={isLatestMessage} />;
-    } else if (enableUserMsgMarkdown) {
-      return <MarkdownLite content={text} />;
-    } else {
-      return <>{text}</>;
-    }
-  }, [isCreatedByUser, enableUserMsgMarkdown, text, isLatestMessage]);
+  let content: ContentType;
+  if (!isCreatedByUser) {
+    content = <Markdown content={text} isLatestMessage={isLatestMessage} />;
+  } else if (enableUserMsgMarkdown) {
+    content = <MarkdownLite content={text} />;
+  } else {
+    content = <>{text}</>;
+  }
 
-  return (
+  const textContent = (
     <div
       className={cn(
         isSubmitting ? 'submitting' : '',
@@ -45,6 +45,12 @@ const TextPart = memo(({ text, isCreatedByUser, showCursor }: TextPartProps) => 
       {content}
     </div>
   );
-});
+
+  if (!isCreatedByUser) {
+    return <AIResponse isCreatedByUser={false}>{textContent}</AIResponse>;
+  }
+
+  return textContent;
+}
 
 export default TextPart;

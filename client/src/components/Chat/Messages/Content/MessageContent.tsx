@@ -1,65 +1,63 @@
-import { memo, Suspense, useMemo } from 'react';
-import { useRecoilValue } from 'recoil';
 import { DelayedRender } from '@librechat/client';
 import type { TMessage } from 'librechat-data-provider';
-import type { TMessageContentProps, TDisplayProps } from '~/common';
+import { Suspense, useMemo } from 'react';
+import { useRecoilValue } from 'recoil';
+import type { TDisplayProps, TMessageContentProps } from '~/common';
 import Error from '~/components/Messages/Content/Error';
-import { useMessageContext } from '~/Providers';
-import MarkdownLite from './MarkdownLite';
-import EditMessage from './EditMessage';
-import Thinking from './Parts/Thinking';
 import { useLocalize } from '~/hooks';
-import Container from './Container';
-import Markdown from './Markdown';
-import { cn } from '~/utils';
+import { useMessageContext } from '~/Providers';
 import store from '~/store';
+import { cn } from '~/utils';
+import AIResponse from './AIResponse';
+import Container from './Container';
+import EditMessage from './EditMessage';
+import Markdown from './Markdown';
+import MarkdownLite from './MarkdownLite';
+import Thinking from './Parts/Thinking';
 
 const ERROR_CONNECTION_TEXT = 'Error connecting to server, try refreshing the page.';
 const DELAYED_ERROR_TIMEOUT = 5500;
 const UNFINISHED_DELAY = 250;
 
-const parseThinkingContent = (text: string) => {
+function parseThinkingContent(text: string) {
   const thinkingMatch = text.match(/:::thinking([\s\S]*?):::/);
   return {
     thinkingContent: thinkingMatch ? thinkingMatch[1].trim() : '',
     regularContent: thinkingMatch ? text.replace(/:::thinking[\s\S]*?:::/, '').trim() : text,
   };
-};
+}
 
-const LoadingFallback = () => (
-  <div className="text-message mb-[0.625rem] flex min-h-[20px] flex-col items-start gap-3 overflow-visible">
-    <div className="markdown prose dark:prose-invert light w-full break-words dark:text-gray-100">
-      <div className="absolute">
-        <p className="submitting relative">
-          <span className="result-thinking" />
-        </p>
+function LoadingFallback() {
+  return (
+    <div className="text-message mb-[0.625rem] flex min-h-[20px] flex-col items-start gap-3 overflow-visible">
+      <div className="markdown prose dark:prose-invert light w-full break-words dark:text-gray-100">
+        <div className="absolute">
+          <p className="submitting relative">
+            <span className="result-thinking" />
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+}
 
-const ErrorBox = ({
-  children,
-  className = '',
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) => (
-  <div
-    role="alert"
-    aria-live="assertive"
-    className={cn(
-      'rounded-xl border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-gray-600 dark:text-gray-200',
-      className,
-    )}
-  >
-    {children}
-  </div>
-);
+function ErrorBox({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      className={cn(
+        'rounded-xl border border-red-500/20 bg-red-500/5 px-3 py-2 text-sm text-gray-600 dark:text-gray-200',
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
 
-const ConnectionError = ({ message }: { message?: TMessage }) => {
+function ConnectionError({ message }: { message?: TMessage }) {
   const localize = useLocalize();
-
   return (
     <Suspense fallback={<LoadingFallback />}>
       <DelayedRender delay={DELAYED_ERROR_TIMEOUT}>
@@ -71,13 +69,13 @@ const ConnectionError = ({ message }: { message?: TMessage }) => {
       </DelayedRender>
     </Suspense>
   );
-};
+}
 
-export const ErrorMessage = ({
+export function ErrorMessage({
   text,
   message,
   className = '',
-}: Pick<TDisplayProps, 'text' | 'className'> & { message?: TMessage }) => {
+}: Pick<TDisplayProps, 'text' | 'className'> & { message?: TMessage }) {
   if (text === ERROR_CONNECTION_TEXT) {
     return <ConnectionError message={message} />;
   }
@@ -89,9 +87,9 @@ export const ErrorMessage = ({
       </ErrorBox>
     </Container>
   );
-};
+}
 
-const DisplayMessage = ({ text, isCreatedByUser, message, showCursor }: TDisplayProps) => {
+function DisplayMessage({ text, isCreatedByUser, message, showCursor }: TDisplayProps) {
   const { isSubmitting = false, isLatestMessage = false } = useMessageContext();
   const enableUserMsgMarkdown = useRecoilValue(store.enableUserMsgMarkdown);
 
@@ -110,6 +108,23 @@ const DisplayMessage = ({ text, isCreatedByUser, message, showCursor }: TDisplay
     return <>{text}</>;
   }, [isCreatedByUser, enableUserMsgMarkdown, text, isLatestMessage]);
 
+  if (!isCreatedByUser) {
+    return (
+      <AIResponse isCreatedByUser={false}>
+        <div
+          className={cn(
+            'markdown prose message-content dark:prose-invert light w-full break-words',
+            isSubmitting && 'submitting',
+            showCursorState && text.length > 0 && 'result-streaming',
+            'dark:text-gray-100',
+          )}
+        >
+          {content}
+        </div>
+      </AIResponse>
+    );
+  }
+
   return (
     <Container message={message}>
       <div
@@ -117,24 +132,26 @@ const DisplayMessage = ({ text, isCreatedByUser, message, showCursor }: TDisplay
           'markdown prose message-content dark:prose-invert light w-full break-words',
           isSubmitting && 'submitting',
           showCursorState && text.length > 0 && 'result-streaming',
-          isCreatedByUser && !enableUserMsgMarkdown && 'whitespace-pre-wrap',
-          isCreatedByUser ? 'dark:text-gray-20' : 'dark:text-gray-100',
+          !enableUserMsgMarkdown && 'whitespace-pre-wrap',
+          'dark:text-gray-20',
         )}
       >
         {content}
       </div>
     </Container>
   );
-};
+}
 
-export const UnfinishedMessage = ({ message }: { message: TMessage }) => (
-  <ErrorMessage
-    message={message}
-    text="The response is incomplete; it's either still processing, was cancelled, or censored. Refresh or try a different prompt."
-  />
-);
+export function UnfinishedMessage({ message }: { message: TMessage }) {
+  return (
+    <ErrorMessage
+      message={message}
+      text="The response is incomplete; it's either still processing, was cancelled, or censored. Refresh or try a different prompt."
+    />
+  );
+}
 
-const MessageContent = ({
+export default function MessageContent({
   text,
   edit,
   error,
@@ -142,7 +159,7 @@ const MessageContent = ({
   isSubmitting,
   isLast,
   ...props
-}: TMessageContentProps) => {
+}: TMessageContentProps) {
   const { message } = props;
   const { messageId } = message;
 
@@ -183,6 +200,4 @@ const MessageContent = ({
       {unfinishedMessage}
     </>
   );
-};
-
-export default memo(MessageContent);
+}

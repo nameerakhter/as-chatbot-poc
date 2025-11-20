@@ -1,20 +1,21 @@
-import { Suspense, useMemo } from 'react';
-import { useRecoilValue } from 'recoil';
 import { DelayedRender } from '@librechat/client';
-import { ContentTypes } from 'librechat-data-provider';
 import type {
   Agents,
-  TMessage,
-  TAttachment,
   SearchResultData,
+  TAttachment,
+  TMessage,
   TMessageContentParts,
 } from 'librechat-data-provider';
-import { UnfinishedMessage } from './MessageContent';
+import { ContentTypes } from 'librechat-data-provider';
+import { Suspense, useMemo } from 'react';
+import { useRecoilValue } from 'recoil';
 import Sources from '~/components/Web/Sources';
-import { cn, mapAttachments } from '~/utils';
 import { SearchContext } from '~/Providers';
-import MarkdownLite from './MarkdownLite';
 import store from '~/store';
+import { cn, mapAttachments } from '~/utils';
+import AIResponse from './AIResponse';
+import MarkdownLite from './MarkdownLite';
+import { UnfinishedMessage } from './MessageContent';
 import Part from './Part';
 
 const SearchContent = ({
@@ -31,8 +32,8 @@ const SearchContent = ({
 
   const attachmentMap = useMemo(() => mapAttachments(attachments ?? []), [attachments]);
 
-  if (Array.isArray(message.content) && message.content.length > 0) {
-    return (
+  const content =
+    Array.isArray(message.content) && message.content.length > 0 ? (
       <SearchContext.Provider value={{ searchResults }}>
         <Sources />
         {message.content
@@ -64,21 +65,24 @@ const SearchContent = ({
           </Suspense>
         )}
       </SearchContext.Provider>
+    ) : (
+      <div
+        className={cn(
+          'markdown prose dark:prose-invert light w-full break-words',
+          message.isCreatedByUser && !enableUserMsgMarkdown && 'whitespace-pre-wrap',
+          message.isCreatedByUser ? 'dark:text-gray-20' : 'dark:text-gray-70',
+        )}
+        dir="auto"
+      >
+        <MarkdownLite content={message.text || ''} />
+      </div>
     );
+
+  if (!message.isCreatedByUser) {
+    return <AIResponse isCreatedByUser={false}>{content}</AIResponse>;
   }
 
-  return (
-    <div
-      className={cn(
-        'markdown prose dark:prose-invert light w-full break-words',
-        message.isCreatedByUser && !enableUserMsgMarkdown && 'whitespace-pre-wrap',
-        message.isCreatedByUser ? 'dark:text-gray-20' : 'dark:text-gray-70',
-      )}
-      dir="auto"
-    >
-      <MarkdownLite content={message.text || ''} />
-    </div>
-  );
+  return content;
 };
 
 export default SearchContent;
