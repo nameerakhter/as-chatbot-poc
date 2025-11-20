@@ -8,6 +8,7 @@ const {
 } = require('~/server/middleware');
 const { disposeClient, clientRegistry, requestDataMap } = require('~/server/cleanup');
 const { saveMessage } = require('~/models');
+const { getFaqContext } = require('~/server/services/faq');
 
 function createCloseHandler(abortController) {
   return function (manual) {
@@ -206,6 +207,17 @@ const AgentController = async (req, res, next, initializeClient, addTitle) => {
         res,
       },
     };
+
+    if (typeof text === 'string' && text.trim()) {
+      try {
+        const faqContext = await getFaqContext(text);
+        if (faqContext) {
+          messageOptions.faqContext = faqContext;
+        }
+      } catch (error) {
+        logger.warn('[AgentController] Failed to append FAQ context:', error.message);
+      }
+    }
 
     let response = await client.sendMessage(text, messageOptions);
 

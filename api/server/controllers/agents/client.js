@@ -252,10 +252,23 @@ class AgentClient extends BaseClient {
     );
   }
 
-  getBuildMessagesOptions() {
+  getBuildMessagesOptions(opts = {}) {
+    const instructionSegments = [];
+
+    if (this.options.agent.additional_instructions) {
+      instructionSegments.push(this.options.agent.additional_instructions);
+    }
+
+    if (opts.faqContext) {
+      instructionSegments.push(
+        `Use the following FAQ entries as the factual basis for your reply. ` +
+          `If the user's request is not covered, clearly state that no FAQ entry matches.\n\n${opts.faqContext}`,
+      );
+    }
+
     return {
       instructions: this.options.agent.instructions,
-      additional_instructions: this.options.agent.additional_instructions,
+      additional_instructions: instructionSegments.length ? instructionSegments.join('\n\n') : null,
     };
   }
 
