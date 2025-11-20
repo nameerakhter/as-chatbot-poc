@@ -5,6 +5,7 @@ const Container = ({ children, message }: { children: React.ReactNode; message?:
   <div
     className="text-message flex min-h-[20px] flex-col items-start gap-3 overflow-visible [.text-message+&]:mt-5"
     dir="auto"
+    style={{ width: '100%' }}
   >
     {message?.isCreatedByUser === true && <Files message={message} />}
     {children}
