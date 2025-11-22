@@ -77,9 +77,13 @@ function selectRelevantFaqs(faqs, query) {
 
   const scored = faqs
     .map((faq, index) => {
-      const question = String(faq.question ?? faq.title ?? '').toLowerCase();
-      const answer = String(faq.answer ?? faq.response ?? '').toLowerCase();
-      const combined = `${question} ${answer}`;
+      // Support multiple field name variations including bilingual fields
+      const question = String(faq.question ?? faq.questionEnglish ?? faq.title ?? '').toLowerCase();
+      const answer = String(faq.answer ?? faq.answerEnglish ?? faq.response ?? '').toLowerCase();
+      // Also include Hindi fields for better matching
+      const questionHindi = String(faq.questionHindi ?? '').toLowerCase();
+      const answerHindi = String(faq.answerHindi ?? '').toLowerCase();
+      const combined = `${question} ${answer} ${questionHindi} ${answerHindi}`;
       const score = tokens.reduce((acc, token) => acc + (combined.includes(token) ? 1 : 0), 0);
 
       return { score, faq, index };
@@ -112,8 +116,9 @@ function formatFaqContext(faqs) {
 
   const formatted = faqs
     .map((faq, idx) => {
-      const question = faq.question ?? faq.title ?? 'Question unavailable';
-      const answer = faq.answer ?? faq.response ?? 'Answer unavailable';
+      // Support multiple field name variations including bilingual fields
+      const question = faq.question ?? faq.questionEnglish ?? faq.title ?? 'Question unavailable';
+      const answer = faq.answer ?? faq.answerEnglish ?? faq.response ?? 'Answer unavailable';
       return `FAQ ${idx + 1}:\nQuestion: ${question}\nAnswer: ${answer}`;
     })
     .join('\n\n');
