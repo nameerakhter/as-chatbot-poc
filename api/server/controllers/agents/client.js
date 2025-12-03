@@ -261,8 +261,10 @@ class AgentClient extends BaseClient {
 
     if (opts.faqContext) {
       instructionSegments.push(
-        `Use the following FAQ entries as the factual basis for your reply. ` +
-          `If the user's request is not covered, clearly state that no FAQ entry matches.\n\n${opts.faqContext}`,
+        `The following FAQ entries provide general knowledge context ONLY for informational questions. ` +
+          `DO NOT use FAQ context for actionable queries. ` +
+          `For queries about checking application status, searching services, retrieving certificates, finding applications, or getting statistics, ` +
+          `you MUST use the available MCP tools (check_application_status, get_service_info, get_certificate, search_by_mobile, get_system_stats) instead of FAQ context.\n\n${opts.faqContext}`,
       );
     }
 
@@ -424,7 +426,21 @@ class AgentClient extends BaseClient {
       try {
         const mcpInstructions = await getMCPManager().formatInstructionsForContext(mcpServers);
         if (mcpInstructions) {
-          systemContent = [systemContent, mcpInstructions].filter(Boolean).join('\n\n');
+          // Add explicit priority instructions for MCP tools
+          const priorityInstructions = `\n\n## CRITICAL: Tool Usage Priority
+
+When the user asks for:
+- Application status or tracking → USE check_application_status tool
+- Service information or searching services → USE get_service_info tool  
+- Certificate download or retrieval → USE get_certificate tool
+- Finding applications by mobile → USE search_by_mobile tool
+- System statistics → USE get_system_stats tool
+
+DO NOT rely on FAQ context or general knowledge for these queries. ALWAYS use the appropriate MCP tool to get real-time, accurate data.`;
+
+          systemContent = [systemContent, mcpInstructions, priorityInstructions]
+            .filter(Boolean)
+            .join('\n\n');
           logger.debug('[AgentClient] Injected MCP instructions for servers:', mcpServers);
         }
       } catch (error) {
