@@ -209,13 +209,44 @@ const AgentController = async (req, res, next, initializeClient, addTitle) => {
     };
 
     if (typeof text === 'string' && text.trim()) {
-      try {
-        const faqContext = await getFaqContext(text);
-        if (faqContext) {
-          messageOptions.faqContext = faqContext;
+      const actionableKeywords = [
+        'check',
+        'status',
+        'application',
+        'track',
+        'get',
+        'find',
+        'search',
+        'show',
+        'list',
+        'retrieve',
+        'download',
+        'certificate',
+        'service',
+        'mobile',
+        'application id',
+        'uk21es',
+        'uk',
+        'statistics',
+        'stats',
+        'timeline',
+      ];
+      const lowerText = text.toLowerCase();
+      const isActionableQuery = actionableKeywords.some((keyword) => lowerText.includes(keyword));
+
+      if (!isActionableQuery) {
+        try {
+          const faqContext = await getFaqContext(text);
+          if (faqContext) {
+            messageOptions.faqContext = faqContext;
+          }
+        } catch (error) {
+          logger.warn('[AgentController] Failed to append FAQ context:', error.message);
         }
-      } catch (error) {
-        logger.warn('[AgentController] Failed to append FAQ context:', error.message);
+      } else {
+        logger.debug(
+          '[AgentController] Skipping FAQ context for actionable query, MCP tools should be used',
+        );
       }
     }
 
