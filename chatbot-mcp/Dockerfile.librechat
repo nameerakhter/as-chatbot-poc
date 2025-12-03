@@ -1,0 +1,9 @@
+FROM ghcr.io/danny-avila/librechat:v0.7.9
+
+USER root
+
+RUN apk add --no-cache docker-cli
+
+USER node
+
+CMD ["npm", "run", "backend"]

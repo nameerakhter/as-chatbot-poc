@@ -1,0 +1,90 @@
+services:
+  nestjs-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: apuni-sarkar-nestjs
+    restart: unless-stopped
+    ports:
+      - '3002:3002'
+    environment:
+      MONGO_URI: ${MONGO_URI}
+      NODE_ENV: production
+      PORT: 3002
+      WEB_PORTAL_URL: 'http://host.docker.internal:3003'
+      BACKEND_URL: 'http://localhost:3002'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    networks:
+      - apuni-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3002/chatbot/health']
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  mcp-server:
+    build:
+      context: ./mcp-server
+      dockerfile: Dockerfile
+    container_name: apuni-sarkar-mcp-python
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+    environment:
+      API_BASE_URL: 'http://nestjs-backend:3002'
+      LOG_LEVEL: 'debug'
+      REQUEST_TIMEOUT: '30000'
+      DOCKER_ENV: 'true'
+    networks:
+      - apuni-network
+    depends_on:
+      nestjs-backend:
+        condition: service_healthy
+
+  librechat:
+    build:
+      context: .
+      dockerfile: Dockerfile.librechat
+    container_name: apuni-sarkar-librechat
+    restart: unless-stopped
+    user: root
+    ports:
+      - '3080:3080'
+    volumes:
+      - ./librechat.yaml:/app/librechat.yaml:ro
+      - ./data:/app/api/data
+      - librechat-data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_KEY: ${GEMINI_API_KEY}
+      MONGO_URI: ${MONGO_URI}
+      HOST: 0.0.0.0
+      PORT: 3080
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      NODE_ENV: production
+      ALLOW_EXTERNAL_URLS: true
+      FILE_UPLOADS: true
+      ALLOW_EMAIL_LOGIN: true
+      ALLOW_REGISTRATION: true
+      DATA_DIR: /app/data
+      DEBUG: 'librechat:*,mcp:*'
+      DOCKER_HOST: 'unix:///var/run/docker.sock'
+    depends_on:
+      nestjs-backend:
+        condition: service_healthy
+      mcp-server:
+        condition: service_started
+    networks:
+      - apuni-network
+
+networks:
+  apuni-network:
+    driver: bridge
+
+volumes:
+  librechat-data:
+    driver: local
