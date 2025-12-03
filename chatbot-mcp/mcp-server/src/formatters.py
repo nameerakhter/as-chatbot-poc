@@ -163,46 +163,46 @@ def format_service_card_text(service: Dict, match_score: Optional[float] = None)
     if isinstance(dept, str):
         dept = {"nameEnglish": dept}
 
-    output = "🎯 **Service Information / सेवा जानकारी**\n\n"
+    output = "**Service Information / सेवा जानकारी**\n\n"
     output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
 
     # Service name
-    output += f"📋 **Service Name:** {service.get('nameEnglish', 'N/A')}\n"
+    output += f"**Service Name:** {service.get('nameEnglish', 'N/A')}\n"
     if service.get("nameHindi"):
-        output += f"   **सेवा का नाम:** {service['nameHindi']}\n"
+        output += f"**सेवा का नाम:** {service['nameHindi']}\n"
     output += "\n"
 
     # Department
-    output += f"🏛️ **Department:** {dept.get('nameEnglish', 'N/A')}\n"
+    output += f"**Department:** {dept.get('nameEnglish', 'N/A')}\n"
     if dept.get("nameHindi"):
-        output += f"   **विभाग:** {dept['nameHindi']}\n"
+        output += f"**विभाग:** {dept['nameHindi']}\n"
     output += "\n"
 
     # Fee and timeline
     fee = service.get("charge", 0)
-    output += f"💰 **Fee:** ₹{fee}\n"
-    output += f"⏱️ **Timeline:** {seconds_to_days(service.get('deliveryTimeInSeconds', 0))}\n"
+    output += f"**Fee:** ₹{fee}\n"
+    output += f"**Timeline:** {seconds_to_days(service.get('deliveryTimeInSeconds', 0))}\n"
 
     if service.get("hasCertificate"):
-        output += "📜 **Certificate:** Yes, certificate will be issued\n"
+        output += "**Certificate:** Yes, certificate will be issued\n"
 
     output += "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
 
     # Documents
     documents = service.get("documents", [])
-    output += "📄 **Required Documents / आवश्यक दस्तावेज:**\n\n"
+    output += "**Required Documents / आवश्यक दस्तावेज:**\n\n"
     output += format_documents_list(documents, "required") + "\n\n"
 
     optional_docs = format_documents_list(documents, "optional")
     if optional_docs != "None":
-        output += "📎 **Optional Documents / वैकल्पिक दस्तावेज:**\n\n"
+        output += "**Optional Documents / वैकल्पिक दस्तावेज:**\n\n"
         output += optional_docs + "\n\n"
 
     # Officer flow
     officer_fields = service.get("officerFields", [])
     if officer_fields and len(officer_fields) > 0:
         output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        output += "👥 **Processing Flow:**\n\n"
+        output += "**Processing Flow:**\n\n"
         for idx, field in enumerate(officer_fields):
             office = field.get("office", "Office")
             designation = field.get("designation", "Officer")
@@ -212,14 +212,14 @@ def format_service_card_text(service: Dict, match_score: Optional[float] = None)
     output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
 
     # Apply link
-    output += f"🔗 **Apply Now:** {build_apply_url(service)}\n\n"
-    output += "💡 **Next Steps:**\n"
+    output += f"**Apply Now:** {build_apply_url(service)}\n\n"
+    output += "**Next Steps:**\n"
     output += "• Click the link above to start your application\n"
     output += "• Keep all required documents ready\n"
     output += "• You'll receive an application ID after submission\n"
 
     if match_score:
-        output += f"\n🎯 Match confidence: {match_score:.0f}%"
+        output += f"\n**Match Confidence:** {match_score:.0f}%"
 
     return output
 
@@ -237,9 +237,9 @@ def format_service_response(services_with_scores: List[Tuple[Dict, float]], quer
     """
     if not services_with_scores:
         return (
-            f"❌ **No Services Found**\n\n"
+            f"**No Services Found**\n\n"
             f"Could not find any services matching: \"{query}\"\n\n"
-            f"💡 **Suggestions:**\n"
+            f"**Suggestions:**\n"
             f"• Try different keywords (English or Hindi)\n"
             f"• Check for spelling errors\n"
             f"• Use common terms like 'domicile', 'income', 'caste'\n"
@@ -260,7 +260,7 @@ def format_service_response(services_with_scores: List[Tuple[Dict, float]], quer
     # Show alternatives if available
     if len(services_with_scores) > 1:
         text_output += "\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        text_output += "🔍 **Other Matches:**\n\n"
+        text_output += "**Other Matches:**\n\n"
         for service, score in services_with_scores[1:4]:
             text_output += f"• {service.get('nameEnglish', 'N/A')} ({score:.0f}% match)\n"
             if service.get("nameHindi"):
@@ -304,28 +304,28 @@ def build_progress_bar(completed: int, total: int) -> str:
     percentage = int((completed / total) * 100)
     filled = int((completed / total) * 20)
     empty = 20 - filled
-    return f"{'🟩' * filled}{'⬜' * empty} {percentage}%"
+    return f"[{'█' * filled}{'░' * empty}] {percentage}%"
 
 
 def get_status_badge(status: str) -> str:
     """
-    Get colored badge for status.
+    Get status badge.
 
     Args:
         status: Status string
 
     Returns:
-        Badge string with emoji
+        Badge string
     """
     badges = {
-        "SUBMITTED": "🔵 In Progress",
-        "IN_PROGRESS": "🟡 Processing",
-        "COMPLETED": "🟢 Completed",
-        "PUBLISHED": "✅ Published",
-        "REJECTED": "🔴 Rejected",
-        "AWAITING_PUBLICATION": "🟠 Awaiting Publication",
+        "SUBMITTED": "In Progress",
+        "IN_PROGRESS": "Processing",
+        "COMPLETED": "Completed",
+        "PUBLISHED": "Published",
+        "REJECTED": "Rejected",
+        "AWAITING_PUBLICATION": "Awaiting Publication",
     }
-    return badges.get(status, f"⚪ {status}")
+    return badges.get(status, status)
 
 
 def format_timeline_response(result: Dict) -> str:
@@ -339,7 +339,7 @@ def format_timeline_response(result: Dict) -> str:
         Formatted timeline string
     """
     if not result.get("success"):
-        return f"❌ {result.get('message', 'Error')}\n{result.get('details', '')}"
+        return f"**Error:** {result.get('message', 'Error')}\n{result.get('details', '')}"
 
     data = result.get("data", {})
 
@@ -361,18 +361,18 @@ def format_timeline_response(result: Dict) -> str:
     total_steps = metadata.get("totalSteps", len(timeline))
 
     # Build output
-    output = "📦 **Application Tracking / आवेदन ट्रैकिंग**\n\n"
+    output = "**Application Tracking / आवेदन ट्रैकिंग**\n\n"
     output += "═══════════════════════════════════════════\n\n"
 
     # Status
     output += f"**Status:** {get_status_badge(status)}\n"
 
     if cert_ready:
-        output += "**🎉 Your certificate is ready for download!**\n"
+        output += "**Your certificate is ready for download.**\n"
     elif status == "REJECTED":
-        output += "**❌ Application has been rejected**\n"
+        output += "**Application has been rejected.**\n"
     elif status == "COMPLETED":
-        output += "**✅ Processing completed successfully**\n"
+        output += "**Processing completed successfully.**\n"
     else:
         output += f"**Current Stage:** {stage}\n"
 
@@ -395,7 +395,7 @@ def format_timeline_response(result: Dict) -> str:
     output += "═══════════════════════════════════════════\n\n"
 
     # App details
-    output += "**📋 Application Details:**\n\n"
+    output += "**Application Details:**\n\n"
     output += "```\n"
     output += f"Application ID : {app_id}\n"
     output += f"Applicant Name : {name}\n"
@@ -408,7 +408,7 @@ def format_timeline_response(result: Dict) -> str:
     output += "═══════════════════════════════════════════\n\n"
 
     # Timeline
-    output += "**📍 Tracking Details:**\n\n"
+    output += "**Tracking Details:**\n\n"
 
     for idx, step in enumerate(timeline):
         is_done = step.get("completed", False)
@@ -422,17 +422,12 @@ def format_timeline_response(result: Dict) -> str:
         remarks = step.get("remarks", "")
         action = step.get("actionTaken", "")
 
-        # Icon
-        if is_done:
-            icon = "✅" if milestone else "🟢"
-        else:
-            icon = "🔵" if idx == completed_steps else "⚪"
-
         # Stage name
+        status_indicator = "[✓]" if is_done else "[ ]"
         if milestone:
-            output += f"### {icon} **{stage_name}**"
+            output += f"### {status_indicator} **{stage_name}**"
         else:
-            output += f"{icon} **{stage_name}**"
+            output += f"{status_indicator} **{stage_name}**"
 
         if stage_name_hindi:
             output += f" / *{stage_name_hindi}*"
@@ -440,10 +435,10 @@ def format_timeline_response(result: Dict) -> str:
 
         # Details
         if timestamp:
-            output += f"   📅 {format_date(timestamp)}\n"
-        output += f"   📍 {office}\n"
+            output += f"   Date: {format_date(timestamp)}\n"
+        output += f"   Office: {office}\n"
         if officer not in ["Officer", "System"]:
-            output += f"   👤 {officer}"
+            output += f"   Officer: {officer}"
             if designation:
                 output += f" ({designation})"
             output += "\n"
@@ -451,45 +446,45 @@ def format_timeline_response(result: Dict) -> str:
         # Action
         if action and action != "PROCESSING":
             actions = {
-                "SUBMITTED": "📝 Submitted",
-                "RECOMMEND": "👍 Recommended",
-                "FORWARD": "➡️ Forwarded",
-                "APPROVE": "✅ Approved",
-                "REJECT": "❌ Rejected",
-                "SIGN": "✍️ Signed",
-                "PUBLISH": "📰 Published",
-                "COMPLETED": "✅ Completed",
+                "SUBMITTED": "Submitted",
+                "RECOMMEND": "Recommended",
+                "FORWARD": "Forwarded",
+                "APPROVE": "Approved",
+                "REJECT": "Rejected",
+                "SIGN": "Signed",
+                "PUBLISH": "Published",
+                "COMPLETED": "Completed",
             }
-            output += f"   🔧 {actions.get(action, action)}\n"
+            output += f"   Action: {actions.get(action, action)}\n"
 
         if remarks:
-            output += f"   💬 {remarks}\n"
+            output += f"   Remarks: {remarks}\n"
 
         # Connector
         if idx < len(timeline) - 1:
-            output += "   ⬇️\n" if is_done else "   ⋮\n"
+            output += "\n"
         output += "\n"
 
     output += "═══════════════════════════════════════════\n\n"
 
     # Final message
     if cert_ready:
-        output += "### 🎉 **Certificate Ready!**\n\n"
+        output += "### **Certificate Ready**\n\n"
         output += f"To download: *\"Get certificate for {app_id}\"*\n\n"
     elif status == "REJECTED":
-        output += "### ❌ **Application Rejected**\n\n"
+        output += "### **Application Rejected**\n\n"
         output += "Contact the office for more details.\n\n"
     elif status == "COMPLETED":
-        output += "### ✅ **Processing Complete**\n\n"
+        output += "### **Processing Complete**\n\n"
         output += "Your application has been successfully processed.\n\n"
     else:
-        output += "### 🔵 **Under Process**\n\n"
+        output += "### **Under Process**\n\n"
         if estimated:
             output += f"Expected completion: {format_date(estimated)}\n\n"
         output += f"Track anytime: *\"Check {app_id}\"*\n\n"
 
     output += "---\n\n"
-    output += "*💡 Check status anytime with your Application ID or mobile number.*\n"
+    output += "*Check status anytime with your Application ID or mobile number.*\n"
 
     return output
 
@@ -505,30 +500,30 @@ def format_certificate_response(result: Dict) -> str:
         Formatted certificate string
     """
     if not result.get("success"):
-        return f"❌ {result.get('message')}\n{result.get('details', '')}"
+        return f"**Error:** {result.get('message')}\n{result.get('details', '')}"
 
     cert = result.get("data", {})
 
-    output = "📜 **Certificate Information**\n\n"
+    output = "**Certificate Information**\n\n"
     output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-    output += f"🆔 **Application ID:** {cert.get('applicationId', 'N/A')}\n"
-    output += f"📋 **Certificate Number:** {cert.get('certificateNumber', 'N/A')}\n"
-    output += f"📄 **Service:** {cert.get('serviceName', 'N/A')}\n"
-    output += f"👤 **Applicant:** {cert.get('applicantName', 'N/A')}\n"
-    output += f"📅 **Issue Date:** {format_date(cert.get('issuedDate'))}\n\n"
+    output += f"**Application ID:** {cert.get('applicationId', 'N/A')}\n"
+    output += f"**Certificate Number:** {cert.get('certificateNumber', 'N/A')}\n"
+    output += f"**Service:** {cert.get('serviceName', 'N/A')}\n"
+    output += f"**Applicant:** {cert.get('applicantName', 'N/A')}\n"
+    output += f"**Issue Date:** {format_date(cert.get('issuedDate'))}\n\n"
     output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-    output += "📥 **Download Links:**\n\n"
+    output += "**Download Links:**\n\n"
 
     preview = cert.get("previewUrl", "")
     download = cert.get("downloadUrl", "")
 
     if preview:
-        output += f"🔍 **Preview (View Online):**\n{preview}\n\n"
+        output += f"**Preview (View Online):**\n{preview}\n\n"
     if download:
-        output += f"💾 **Download (Save PDF):**\n{download}\n\n"
+        output += f"**Download (Save PDF):**\n{download}\n\n"
 
     output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-    output += "💡 **Instructions:**\n"
+    output += "**Instructions:**\n"
     output += "1. Click the preview link to view your certificate\n"
     output += "2. Use the download link to save the PDF\n"
     output += "3. Keep this certificate safe for official use"
@@ -547,47 +542,47 @@ def format_search_response(result: Dict) -> str:
         Formatted search results string
     """
     if not result.get("success"):
-        return f"❌ {result.get('message')}\n{result.get('details', '')}"
+        return f"**Error:** {result.get('message')}\n{result.get('details', '')}"
 
     apps = result.get("data", [])
 
     if not apps:
         mobile = result.get("mobile", "the provided number")
         return (
-            f"❌ **No Applications Found**\n\n"
+            f"**No Applications Found**\n\n"
             f"No applications found for mobile number: **{mobile}**\n\n"
             f"Please verify:\n"
             f"• The mobile number is correct\n"
             f"• You have submitted applications using this number\n"
             f"• The number is registered in the system\n\n"
-            f"💡 If you need help, contact Apuni Sarkar support."
+            f"If you need help, contact Apuni Sarkar support."
         )
 
     mobile = apps[0].get("applicantMobile", "N/A")
-    output = f"📱 **Applications for Mobile: {mobile}**\n\n"
+    output = f"**Applications for Mobile: {mobile}**\n\n"
     output += f"Found **{len(apps)}** application(s)\n\n"
     output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
 
     for idx, app in enumerate(apps):
         cert = app.get("certificateReady", False)
         status = app.get("status", "UNKNOWN")
-        icon = "✅" if cert else ("❌" if status == "REJECTED" else "🔵")
+        status_indicator = "[✓]" if cert else ("[X]" if status == "REJECTED" else "[ ]")
 
-        output += f"{icon} **{app.get('applicationId', 'N/A')}**\n"
-        output += f"   📄 Service: {app.get('serviceName') or app.get('serviceType', 'N/A')}\n"
-        output += f"   📊 Status: {status}\n"
-        output += f"   📅 Submitted: {format_date(app.get('submittedDate'))}\n"
+        output += f"{status_indicator} **{app.get('applicationId', 'N/A')}**\n"
+        output += f"   Service: {app.get('serviceName') or app.get('serviceType', 'N/A')}\n"
+        output += f"   Status: {status}\n"
+        output += f"   Submitted: {format_date(app.get('submittedDate'))}\n"
 
         if done := app.get("completedDate"):
-            output += f"   ✅ Completed: {format_date(done)}\n"
+            output += f"   Completed: {format_date(done)}\n"
         if cert:
-            output += "   🎉 Certificate Ready!\n"
+            output += "   Certificate Ready\n"
 
         if idx < len(apps) - 1:
             output += "\n"
 
     output += "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-    output += "💡 **Next Steps:**\n"
+    output += "**Next Steps:**\n"
     output += "• To check details: \"Check status of [Application ID]\"\n"
     output += "• To download certificate: \"Download certificate for [Application ID]\"\n"
 
@@ -605,21 +600,21 @@ def format_stats_response(result: Dict) -> str:
         Formatted stats string
     """
     if not result.get("success"):
-        return f"❌ {result.get('message')}\n{result.get('details', '')}"
+        return f"**Error:** {result.get('message')}\n{result.get('details', '')}"
 
     stats = result.get("data", {})
 
-    output = "📊 **Apuni Sarkar System Statistics**\n\n"
+    output = "**Apuni Sarkar System Statistics**\n\n"
     output += "Uttarakhand E-Governance Portal\n\n"
     output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-    output += f"📝 **Total Applications:** {stats.get('total', 0):,}\n"
-    output += f"✅ **Completed:** {stats.get('completed', 0):,}\n"
-    output += f"🔵 **In Progress:** {stats.get('inProgress', 0):,}\n"
-    output += f"❌ **Rejected:** {stats.get('rejected', 0):,}\n"
-    output += f"📋 **Published Certificates:** {stats.get('published', 0):,}\n"
-    output += f"📈 **Today's Applications:** {stats.get('todayApplications', 0):,}\n"
-    output += f"✨ **Completion Rate:** {stats.get('completionRate', 'N/A')}\n\n"
-    output += f"🕐 **Last Updated:** {format_date(stats.get('timestamp'))}\n"
+    output += f"**Total Applications:** {stats.get('total', 0):,}\n"
+    output += f"**Completed:** {stats.get('completed', 0):,}\n"
+    output += f"**In Progress:** {stats.get('inProgress', 0):,}\n"
+    output += f"**Rejected:** {stats.get('rejected', 0):,}\n"
+    output += f"**Published Certificates:** {stats.get('published', 0):,}\n"
+    output += f"**Today's Applications:** {stats.get('todayApplications', 0):,}\n"
+    output += f"**Completion Rate:** {stats.get('completionRate', 'N/A')}\n\n"
+    output += f"**Last Updated:** {format_date(stats.get('timestamp'))}\n"
 
     return output
 

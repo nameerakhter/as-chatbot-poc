@@ -21,7 +21,7 @@ logging.basicConfig(
 logger = logging.getLogger("apuni-sarkar-mcp")
 
 # Create MCP server instance
-server = Server("apuni-sarkar-mcp-production")
+server = Server("apuni-sarkar-mcp-server")
 
 
 @server.list_tools()
