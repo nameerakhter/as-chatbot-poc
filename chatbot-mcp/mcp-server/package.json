@@ -1,0 +1,17 @@
+{
+  "name": "apuni-sarkar-mcp-server",
+  "version": "2.0.0",
+  "description": "MCP Server for Apuni Sarkar E-Governance Portal",
+  "scripts": {
+    "start": "uv run python -m src.main",
+    "dev": "uv run python -m src.main",
+    "install": "uv sync"
+  },
+  "keywords": [
+    "mcp",
+    "chatbot",
+    "apuni-sarkar"
+  ],
+  "author": "",
+  "license": "MIT"
+}
