@@ -47,7 +47,10 @@ class APIClient:
             data: Request body data
 
         Returns:
-            Response data as dictionary
+            Response data as dictionary (direct response, not wrapped)
+            
+        Raises:
+            httpx.HTTPStatusError: For HTTP errors (404, 500, etc.)
         """
         client = await self._get_client()
         url = f"{API_BASE_URL}{endpoint}"
@@ -74,35 +77,15 @@ class APIClient:
 
         except httpx.ConnectError as e:
             logger.error(f"Connection failed to {url}: {str(e)}")
-            return {
-                "success": False,
-                "message": f"Can't reach backend at {API_BASE_URL}",
-                "details": str(e),
-            }
+            raise Exception(f"Can't reach backend at {API_BASE_URL}: {str(e)}")
 
         except httpx.TimeoutException as e:
             logger.error(f"Request timed out: {str(e)}")
-            return {
-                "success": False,
-                "message": "Request took too long",
-                "details": str(e),
-            }
+            raise Exception(f"Request took too long: {str(e)}")
 
         except httpx.HTTPStatusError as e:
             logger.error(f"HTTP {e.response.status_code}: {str(e)}")
-            return {
-                "success": False,
-                "message": f"Backend returned error: {e.response.status_code}",
-                "details": str(e),
-            }
-
-        except Exception as e:
-            logger.error(f"Something went wrong: {str(e)}", exc_info=True)
-            return {
-                "success": False,
-                "message": "Unexpected error",
-                "details": str(e),
-            }
+            raise
 
     async def fetch_all_services(self, cache_ttl: int = 3600) -> List[Dict[str, Any]]:
         """
@@ -126,15 +109,10 @@ class APIClient:
         logger.info("Fetching fresh services from API...")
         result = await self.request("/chatbot/services")
 
-        if not result.get("success", True):
-            logger.error(f"Failed to get services: {result.get('message')}")
-            return []
-
         if isinstance(result, list):
             services = result
-        elif "data" in result:
-            services = result["data"]
         else:
+            logger.warning(f"Unexpected services response format: {type(result)}")
             services = []
 
         self._services_cache = services
@@ -148,19 +126,40 @@ class APIClient:
         return await self.request("/chatbot/health")
 
     async def get_application_timeline(self, application_id: str) -> Dict[str, Any]:
-        """Get application timeline."""
+        """
+        Get application timeline.
+        
+        Returns:
+            ApplicationTimelineResponse directly (not wrapped)
+        """
         return await self.request(f"/chatbot/application/{application_id}/timeline")
 
     async def get_certificate(self, application_id: str) -> Dict[str, Any]:
-        """Get certificate information."""
+        """
+        Get certificate information.
+        
+        Returns:
+            CertificateInfoResponse directly (not wrapped)
+        """
         return await self.request(f"/chatbot/certificate/{application_id}")
 
-    async def search_by_mobile(self, mobile: str) -> Dict[str, Any]:
-        """Search applications by mobile number."""
-        return await self.request("/chatbot/search", params={"mobile": mobile})
+    async def search_by_mobile(self, mobile: str) -> List[Dict[str, Any]]:
+        """
+        Search applications by mobile number.
+        
+        Returns:
+            List of ApplicationSearchResult (not wrapped)
+        """
+        result = await self.request("/chatbot/search", params={"mobile": mobile})
+        return result if isinstance(result, list) else []
 
     async def get_system_stats(self) -> Dict[str, Any]:
-        """Get system statistics."""
+        """
+        Get system statistics.
+        
+        Returns:
+            StatisticsResponse directly (not wrapped)
+        """
         return await self.request("/chatbot/stats")
 
 
