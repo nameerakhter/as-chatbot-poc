@@ -3,6 +3,7 @@
 import logging
 from typing import Any, Dict
 
+import httpx
 from mcp.types import Tool, TextContent
 
 from .api_client import get_client
@@ -142,8 +143,24 @@ async def handle_tool_call(name: str, args: Dict[str, Any]) -> list[TextContent]
                         type="text", text="❌ Application ID is required"
                     )
                 ]
-            result = await client.get_application_timeline(application_id)
-            return [TextContent(type="text", text=format_timeline_response(result))]
+            try:
+                result = await client.get_application_timeline(application_id)
+                return [TextContent(type="text", text=format_timeline_response(result))]
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 404:
+                    return [TextContent(
+                        type="text",
+                        text=f"❌ Application '{application_id}' not found. Please verify the application ID."
+                    )]
+                return [TextContent(
+                    type="text",
+                    text=f"❌ Error checking application status: {e.response.status_code}"
+                )]
+            except Exception as e:
+                return [TextContent(
+                    type="text",
+                    text=f"❌ Error: {str(e)}"
+                )]
 
         case "get_certificate":
             application_id = args.get("applicationId", "")
@@ -153,8 +170,30 @@ async def handle_tool_call(name: str, args: Dict[str, Any]) -> list[TextContent]
                         type="text", text="❌ Application ID is required"
                     )
                 ]
-            result = await client.get_certificate(application_id)
-            return [TextContent(type="text", text=format_certificate_response(result))]
+            try:
+                result = await client.get_certificate(application_id)
+                return [TextContent(type="text", text=format_certificate_response(result))]
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 404:
+                    error_msg = "Certificate not ready or application not found"
+                    try:
+                        error_data = e.response.json()
+                        error_msg = error_data.get("message", error_msg)
+                    except:
+                        pass
+                    return [TextContent(
+                        type="text",
+                        text=f"❌ {error_msg}"
+                    )]
+                return [TextContent(
+                    type="text",
+                    text=f"❌ Error getting certificate: {e.response.status_code}"
+                )]
+            except Exception as e:
+                return [TextContent(
+                    type="text",
+                    text=f"❌ Error: {str(e)}"
+                )]
 
         case "search_by_mobile":
             mobile = args.get("mobile", "")
@@ -164,21 +203,45 @@ async def handle_tool_call(name: str, args: Dict[str, Any]) -> list[TextContent]
                         type="text", text="❌ Mobile number is required"
                     )
                 ]
-            result = await client.search_by_mobile(mobile)
-            return [TextContent(type="text", text=format_search_response(result))]
+            try:
+                result = await client.search_by_mobile(mobile)
+                # result is now a list directly
+                return [TextContent(type="text", text=format_search_response(result))]
+            except httpx.HTTPStatusError as e:
+                return [TextContent(
+                    type="text",
+                    text=f"❌ Error searching applications: {e.response.status_code}"
+                )]
+            except Exception as e:
+                return [TextContent(
+                    type="text",
+                    text=f"❌ Error: {str(e)}"
+                )]
 
         case "get_system_stats":
-            result = await client.get_system_stats()
-            return [TextContent(type="text", text=format_stats_response(result))]
+            try:
+                result = await client.get_system_stats()
+                return [TextContent(type="text", text=format_stats_response(result))]
+            except Exception as e:
+                return [TextContent(
+                    type="text",
+                    text=f"❌ Error getting statistics: {str(e)}"
+                )]
 
         case "health_check":
-            result = await client.health_check()
-            text = (
-                "✅ Backend online"
-                if result.get("status") == "ok"
-                else f"❌ Offline: {result.get('message', 'Unknown')}"
-            )
-            return [TextContent(type="text", text=text)]
+            try:
+                result = await client.health_check()
+                text = (
+                    "✅ Backend online"
+                    if result.get("status") == "ok"
+                    else f"❌ Offline: {result.get('message', 'Unknown')}"
+                )
+                return [TextContent(type="text", text=text)]
+            except Exception as e:
+                return [TextContent(
+                    type="text",
+                    text=f"❌ Backend offline: {str(e)}"
+                )]
 
     return [TextContent(type="text", text=f"❌ Unknown tool: {name}")]
 
