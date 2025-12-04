@@ -269,23 +269,35 @@ def format_service_response(services_with_scores: List[Tuple[Dict, float]], quer
     return f"{wrapped_card}\n\n{text_output}"
 
 
-def format_date(date_string: Optional[str]) -> str:
+def format_date(date_value: Optional[str | datetime]) -> str:
     """
     Format date nicely.
 
     Args:
-        date_string: ISO format date string
+        date_value: ISO format date string or datetime object
 
     Returns:
         Formatted date string
     """
-    if not date_string:
+    if not date_value:
         return "N/A"
+    
+    # Handle datetime objects
+    if isinstance(date_value, datetime):
+        return date_value.strftime("%B %d, %Y, %I:%M %p")
+    
+    # Handle string dates
     try:
-        date = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
-        return date.strftime("%B %d, %Y, %I:%M %p")
+        # Try ISO format first
+        if isinstance(date_value, str):
+            date_str = date_value.replace("Z", "+00:00")
+            date = datetime.fromisoformat(date_str)
+            return date.strftime("%B %d, %Y, %I:%M %p")
     except Exception:
-        return date_string
+        # If parsing fails, return as-is
+        return str(date_value)
+    
+    return "N/A"
 
 
 def build_progress_bar(completed: int, total: int) -> str:
@@ -333,15 +345,13 @@ def format_timeline_response(result: Dict) -> str:
     Format application tracking timeline.
 
     Args:
-        result: API response dictionary
+        result: API response dictionary (ApplicationTimelineResponse directly)
 
     Returns:
         Formatted timeline string
     """
-    if not result.get("success"):
-        return f"**Error:** {result.get('message', 'Error')}\n{result.get('details', '')}"
-
-    data = result.get("data", {})
+    # API now returns data directly, not wrapped
+    data = result
 
     # Extract everything
     app_id = data.get("applicationId", "N/A")
@@ -494,24 +504,32 @@ def format_certificate_response(result: Dict) -> str:
     Format certificate info.
 
     Args:
-        result: API response dictionary
+        result: API response dictionary (CertificateInfoResponse directly)
 
     Returns:
         Formatted certificate string
     """
-    if not result.get("success"):
-        return f"**Error:** {result.get('message')}\n{result.get('details', '')}"
-
-    cert = result.get("data", {})
+    # API now returns data directly, not wrapped
+    cert = result
 
     output = "**Certificate Information**\n\n"
     output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
     output += f"**Application ID:** {cert.get('applicationId', 'N/A')}\n"
     output += f"**Certificate Number:** {cert.get('certificateNumber', 'N/A')}\n"
-    output += f"**Service:** {cert.get('serviceName', 'N/A')}\n"
+    output += f"**Service:** {cert.get('certificateType', cert.get('serviceName', 'N/A'))}\n"
+    if cert.get('certificateTypeHindi'):
+        output += f"**सेवा:** {cert.get('certificateTypeHindi')}\n"
     output += f"**Applicant:** {cert.get('applicantName', 'N/A')}\n"
-    output += f"**Issue Date:** {format_date(cert.get('issuedDate'))}\n\n"
-    output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+    if cert.get('applicantMobile'):
+        output += f"**Mobile:** {cert.get('applicantMobile')}\n"
+    output += f"**Issue Date:** {format_date(cert.get('issuedDate'))}\n"
+    if cert.get('publishedDate'):
+        output += f"**Published Date:** {format_date(cert.get('publishedDate'))}\n"
+    if cert.get('validFrom'):
+        output += f"**Valid From:** {format_date(cert.get('validFrom'))}\n"
+    if cert.get('validUntil'):
+        output += f"**Valid Until:** {format_date(cert.get('validUntil'))}\n"
+    output += "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
     output += "**Download Links:**\n\n"
 
     preview = cert.get("previewUrl", "")
@@ -531,26 +549,23 @@ def format_certificate_response(result: Dict) -> str:
     return output
 
 
-def format_search_response(result: Dict) -> str:
+def format_search_response(result: List[Dict]) -> str:
     """
     Format mobile search results.
 
     Args:
-        result: API response dictionary
+        result: List of ApplicationSearchResult dictionaries (direct array, not wrapped)
 
     Returns:
         Formatted search results string
     """
-    if not result.get("success"):
-        return f"**Error:** {result.get('message')}\n{result.get('details', '')}"
-
-    apps = result.get("data", [])
+    # API now returns array directly
+    apps = result if isinstance(result, list) else []
 
     if not apps:
-        mobile = result.get("mobile", "the provided number")
         return (
             f"**No Applications Found**\n\n"
-            f"No applications found for mobile number: **{mobile}**\n\n"
+            f"No applications found for the provided mobile number.\n\n"
             f"Please verify:\n"
             f"• The mobile number is correct\n"
             f"• You have submitted applications using this number\n"
@@ -558,9 +573,7 @@ def format_search_response(result: Dict) -> str:
             f"If you need help, contact Apuni Sarkar support."
         )
 
-    mobile = apps[0].get("applicantMobile", "N/A")
-    output = f"**Applications for Mobile: {mobile}**\n\n"
-    output += f"Found **{len(apps)}** application(s)\n\n"
+    output = f"**Applications Found: {len(apps)}**\n\n"
     output += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
 
     for idx, app in enumerate(apps):
@@ -594,15 +607,13 @@ def format_stats_response(result: Dict) -> str:
     Format system stats.
 
     Args:
-        result: API response dictionary
+        result: API response dictionary (StatisticsResponse directly)
 
     Returns:
         Formatted stats string
     """
-    if not result.get("success"):
-        return f"**Error:** {result.get('message')}\n{result.get('details', '')}"
-
-    stats = result.get("data", {})
+    # API now returns data directly, not wrapped
+    stats = result
 
     output = "**Apuni Sarkar System Statistics**\n\n"
     output += "Uttarakhand E-Governance Portal\n\n"
