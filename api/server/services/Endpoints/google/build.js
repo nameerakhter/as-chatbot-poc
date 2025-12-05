@@ -1,5 +1,6 @@
 const { removeNullishValues } = require('librechat-data-provider');
 const generateArtifactsPrompt = require('~/app/clients/prompts/artifacts');
+const { getScopeRestriction } = require('~/app/clients/prompts/artifacts');
 
 const buildOptions = (endpoint, parsedBody) => {
   const {
@@ -15,12 +16,18 @@ const buildOptions = (endpoint, parsedBody) => {
     fileTokenLimit,
     ...modelOptions
   } = parsedBody;
+
+  const scopeRestriction = getScopeRestriction();
+  const enhancedPromptPrefix = promptPrefix
+    ? `${scopeRestriction}\n\n${promptPrefix}`.trim()
+    : scopeRestriction;
+
   const endpointOption = removeNullishValues({
     examples,
     endpoint,
     modelLabel,
     resendFiles,
-    promptPrefix,
+    promptPrefix: enhancedPromptPrefix,
     iconURL,
     greeting,
     spec,
