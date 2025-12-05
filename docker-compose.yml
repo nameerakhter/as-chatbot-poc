@@ -24,6 +24,11 @@ services:
       - type: bind
         source: ./.env
         target: /app/.env
+      - type: bind
+        source: ./librechat.yaml
+        target: /app/librechat.yaml
+        read_only: true
+      - ./chatbot-mcp/mcp-server:/app/chatbot-mcp/mcp-server
       - ./images:/app/client/public/images
       - ./uploads:/app/uploads
       - ./logs:/app/logs
