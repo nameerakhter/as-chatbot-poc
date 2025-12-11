@@ -15,6 +15,7 @@ import { useConversationsInfiniteQuery } from '~/data-provider';
 import { Conversations } from '~/components/Conversations';
 import SearchBar from './SearchBar';
 import NewChat from './NewChat';
+import SidebarHeader from './SidebarHeader';
 import { cn } from '~/utils';
 import store from '~/store';
 
@@ -193,12 +194,14 @@ const Nav = memo(
         <div
           data-testid="nav"
           className={cn(
-            'nav active max-w-[320px] flex-shrink-0 transform overflow-x-hidden bg-surface-primary-alt transition-all duration-200 ease-in-out',
+            'nav active max-w-[320px] flex-shrink-0 transform overflow-x-hidden transition-all duration-200 ease-in-out',
             'md:max-w-[260px]',
           )}
           style={{
             width: navVisible ? navWidth : '0px',
             transform: navVisible ? 'translateX(0)' : 'translateX(-100%)',
+            backgroundColor: 'var(--sidebar)',
+            borderRight: '1px solid var(--sidebar-border)',
           }}
         >
           <div className="h-full w-[320px] md:w-[260px]">
@@ -210,13 +213,13 @@ const Nav = memo(
                   <nav
                     id="chat-history-nav"
                     aria-label={localize('com_ui_chat_history')}
-                    className="flex h-full flex-col px-2 pb-3.5 md:px-3"
+                    className="flex h-full flex-col px-4 py-4 md:px-5"
                   >
+                    <SidebarHeader />
                     <div className="flex flex-1 flex-col" ref={outerContainerRef}>
                       <MemoNewChat
                         subHeaders={subHeaders}
                         toggleNav={toggleNavVisible}
-                        headerButtons={headerButtons}
                         isSmallScreen={isSmallScreen}
                       />
                       <Conversations
