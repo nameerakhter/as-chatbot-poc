@@ -1,9 +1,8 @@
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeys, Constants } from 'librechat-data-provider';
+import { QueryKeys } from 'librechat-data-provider';
 import { TooltipAnchor, NewChatIcon, MobileSidebar, Sidebar, Button } from '@librechat/client';
-import type { TMessage } from 'librechat-data-provider';
 import { useLocalize, useNewConvo } from '~/hooks';
 import { clearMessagesCache } from '~/utils';
 import store from '~/store';
@@ -13,7 +12,6 @@ export default function NewChat({
   toggleNav,
   subHeaders,
   isSmallScreen,
-  headerButtons,
 }: {
   index?: number;
   toggleNav: () => void;
@@ -47,7 +45,7 @@ export default function NewChat({
 
   return (
     <>
-      <div className="flex items-center justify-between py-[2px] md:py-2">
+      <div className="flex flex-col gap-3 py-0">
         <TooltipAnchor
           description={localize('com_nav_close_sidebar')}
           render={
@@ -56,7 +54,7 @@ export default function NewChat({
               variant="outline"
               data-testid="close-sidebar-button"
               aria-label={localize('com_nav_close_sidebar')}
-              className="rounded-full border-none bg-transparent p-2 hover:bg-surface-hover md:rounded-xl"
+              className="self-start rounded-full border-none bg-transparent p-2 hover:bg-surface-hover md:rounded-xl"
               onClick={toggleNav}
             >
               <Sidebar className="max-md:hidden" />
@@ -64,25 +62,18 @@ export default function NewChat({
             </Button>
           }
         />
-        <div className="flex gap-0.5">
-          {headerButtons}
-
-          <TooltipAnchor
-            description={localize('com_ui_new_chat')}
-            render={
-              <Button
-                size="icon"
-                variant="outline"
-                data-testid="nav-new-chat-button"
-                aria-label={localize('com_ui_new_chat')}
-                className="rounded-full border-none bg-transparent p-2 hover:bg-surface-hover md:rounded-xl"
-                onClick={clickHandler}
-              >
-                <NewChatIcon className="icon-lg text-text-primary" />
-              </Button>
-            }
-          />
-        </div>
+        <button
+          onClick={clickHandler}
+          data-testid="nav-new-chat-button"
+          aria-label={localize('com_ui_new_chat')}
+          className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors hover:opacity-90"
+          style={{
+            backgroundColor: 'var(--primary)',
+          }}
+        >
+          <NewChatIcon className="icon-md" />
+          <span>{localize('com_ui_new_chat')}</span>
+        </button>
       </div>
       {subHeaders != null ? subHeaders : null}
     </>

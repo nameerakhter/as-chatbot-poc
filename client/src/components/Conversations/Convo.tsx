@@ -133,8 +133,11 @@ export default function Conversation({ conversation, retainView, toggleNav }: Co
     <div
       className={cn(
         'group relative flex h-12 w-full items-center rounded-lg transition-colors duration-200 md:h-9',
-        isActiveConvo ? 'bg-surface-active-alt' : 'hover:bg-surface-active-alt',
       )}
+      style={{
+        backgroundColor: isActiveConvo ? 'var(--sidebar-active-bg)' : 'transparent',
+        color: isActiveConvo ? 'var(--sidebar-active-text)' : 'var(--sidebar-text)',
+      }}
       role="button"
       tabIndex={renaming ? -1 : 0}
       aria-label={`${title || localize('com_ui_untitled')} conversation`}
@@ -155,7 +158,16 @@ export default function Conversation({ conversation, retainView, toggleNav }: Co
           handleNavigation(false);
         }
       }}
-      style={{ cursor: renaming ? 'default' : 'pointer' }}
+      onMouseEnter={(e) => {
+        if (!isActiveConvo && !renaming) {
+          e.currentTarget.style.backgroundColor = 'var(--sidebar-active-bg)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!isActiveConvo && !renaming) {
+          e.currentTarget.style.backgroundColor = 'transparent';
+        }
+      }}
       data-testid="convo-item"
     >
       {renaming ? (
