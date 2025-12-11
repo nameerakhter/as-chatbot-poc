@@ -9,7 +9,6 @@ import { useGetStartupConfig } from '~/data-provider';
 import ExportAndShareMenu from './ExportAndShareMenu';
 import BookmarkMenu from './Menus/BookmarkMenu';
 import { TemporaryChat } from './TemporaryChat';
-import AddMultiConvo from './AddMultiConvo';
 import { useHasAccess } from '~/hooks';
 
 const defaultInterface = getConfigDefaults().interface;
@@ -28,15 +27,10 @@ export default function Header() {
     permission: Permissions.USE,
   });
 
-  const hasAccessToMultiConvo = useHasAccess({
-    permissionType: PermissionTypes.MULTI_CONVO,
-    permission: Permissions.USE,
-  });
-
   const isSmallScreen = useMediaQuery('(max-width: 768px)');
 
   return (
-    <div className="sticky top-0 z-10 flex h-14 w-full items-center justify-between bg-white p-2 font-semibold text-text-primary dark:bg-gray-800">
+    <div className="sticky top-0 z-10 flex h-14 w-full items-center justify-between bg-background p-2 font-semibold text-foreground">
       <div className="hide-scrollbar flex w-full items-center justify-between gap-2 overflow-x-auto">
         <div className="mx-1 flex items-center gap-2">
           <div
@@ -59,7 +53,6 @@ export default function Header() {
             <ModelSelector startupConfig={startupConfig} />
             {interfaceConfig.presets === true && interfaceConfig.modelSelect && <PresetsMenu />}
             {hasAccessToBookmarks === true && <BookmarkMenu />}
-            {hasAccessToMultiConvo === true && <AddMultiConvo />}
             {isSmallScreen && (
               <>
                 <ExportAndShareMenu
