@@ -37,6 +37,7 @@ RUN \
     npm ci --no-audit
 
 COPY --chown=node:node . .
+COPY --chown=node:node client/public/images/logo-small.png /app/client/public/images/logo-small.png
 
 RUN \
     # React client build
