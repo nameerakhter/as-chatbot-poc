@@ -36,6 +36,8 @@ services:
     image: mongo
     restart: always
     user: '${UID}:${GID}'
+    ports:
+      - '27019:27017'
     volumes:
       - ./data-node:/data/db
     command: mongod --noauth
